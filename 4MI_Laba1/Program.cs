@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 #region Інша функція
 //static op function = (x) => (float)(Math.Cos(Math.Sin(Math.Pow(x, 3))) - .7f);
@@ -14,11 +13,13 @@ namespace _4MI_Laba1
 {
     internal class Program
     {
-        static Func<float, float> function = (x) => (float)(1.5f - Math.Pow(x, 1 - Math.Cos(x)));
-        static float[,] interval = { { 0f, (float)(Math.PI * 5f) } };
-        static float accuracy = .1f;
-        static float[,] points;
-        static int amountOfPoints = 10;
+        static readonly Func<float, float> function = 
+            (x) => (float)(1.5f - Math.Pow(x, 1 - Math.Cos(x)));
+        static readonly float[,] interval = { { 0f, (float)(Math.PI * 5f) } };
+        static readonly float accuracy = .01f;
+
+        static float[,] firstStep_Intervals;
+        static readonly int amountOfIntervals = 10;
 
         static List<float> res = new List<float>();
 
@@ -30,17 +31,16 @@ namespace _4MI_Laba1
             Console.WriteLine("\nЕтап 1: Відокремлення коренів");
 
             float distance = Math.Abs(interval[0, 0] - interval[0, 1]);
-            float step = distance / (float)amountOfPoints;
-            points = new float[amountOfPoints + 1, 2];
+            float step = distance / amountOfIntervals;
+            firstStep_Intervals = new float[amountOfIntervals + 1, 2];
 
-            for (int i = 0; i <= amountOfPoints; i++)
+            for (int i = 0; i <= amountOfIntervals; i++)
             {
-                points[i, 0] = interval[0, 0] + step * i;
-                points[i, 1] = function(points[i, 0]);
-                if (float.IsInfinity(points[i, 1])) points[i, 1] = float.PositiveInfinity;
+                firstStep_Intervals[i, 0] = interval[0, 0] + step * i;
+                firstStep_Intervals[i, 1] = function(firstStep_Intervals[i, 0]);
                 #region . "вивід Х та значення функції для нього" .
-                Console.WriteLine($"x:{(points[i, 0] < 0 ? " " : "  ")}{points[i, 0]:0.0000}\t" +
-                    $"y:{(points[i,1]<0 ? " " : "  ")}{points[i, 1]:0.0000}");
+                Console.WriteLine($"x:{(firstStep_Intervals[i, 0] < 0 ? " " : "  ")}{firstStep_Intervals[i, 0]:0.0000}\t" +
+                    $"y:{(firstStep_Intervals[i,1]<0 ? " " : "  ")}{firstStep_Intervals[i, 1]:0.0000}");
                 #endregion
             }
 
@@ -56,29 +56,26 @@ namespace _4MI_Laba1
         {
             Console.WriteLine("\nЕтап 2: Уточнення коренів на проміжку методом дотичних");
 
-            float prev = points[0, 1];
-            for (int i = 1; i <= amountOfPoints; i++)
+            float prev = firstStep_Intervals[0, 1];
+            for (int i = 1; i <= amountOfIntervals; i++)
             {
-                
-
-                if (prev * points[i, 1] < 0)
+                if (prev * firstStep_Intervals[i, 1] < 0)
                 { 
                     #region . "Відбулася зміна знаку" .
                     Console.WriteLine($"\nНа інтервалі " +
-                        $"[{points[i - 1, 0]:0.00}, {points[i, 0]:0.00}] " +
-                        $"відбулася зміна знаку з {(prev < 0 ? "мінуса" : "плюса")} на {(points[i, 1] > 0 ? "плюс" : "мінус")}");
+                        $"[{firstStep_Intervals[i - 1, 0]:0.00}, {firstStep_Intervals[i, 0]:0.00}] " +
+                        $"відбулася зміна знаку з {(prev < 0 ? "мінуса" : "плюса")} на {(firstStep_Intervals[i, 1] > 0 ? "плюс" : "мінус")}");
                     #endregion
 
-                    float foundRoot = SecondStep_ClarifyRoot(i, .1f, points[i - 1, 0]);
+                    float foundRoot = SecondStep_ClarifyRoot(i, .1f, firstStep_Intervals[i - 1, 0]);
                     res.Add(foundRoot);
                     #region . "(збережено)" .
                     SetColor(Alerts[3]);
                     Console.WriteLine("(збережено)");
                     SetColor(Alerts[0]);
                     #endregion
-
                 }
-                prev = points[i, 1];
+                prev = firstStep_Intervals[i, 1];
             }
         }
 
@@ -103,18 +100,19 @@ namespace _4MI_Laba1
                     Console.WriteLine($"- ! Функція не визначена. Пробуємо йти з іншого кінця інтервалу ");
                     SetColor(Alerts[0]);
                     #endregion
-                    float temp = SecondStep_ClarifyRoot(idx, (-1f)*increase, points[idx, 0]);
+                    float temp = SecondStep_ClarifyRoot(idx, increase, firstStep_Intervals[idx, 0]);
                     return temp;
                 }
 
-                if (nextX > points[idx, 0]) 
+                if (nextX > firstStep_Intervals[idx, 0]) 
                 {
                     #region . "Перетин дотичної поза обраним інтервалом" .
                     SetColor(Alerts[1]);
                     Console.WriteLine(" - ! Точка перетину дотичної з ОХ більша за границю обраного інтервалу. Пробуємо йти з іншого його кінця");
                     SetColor(Alerts[0]);
                     #endregion
-                    return SecondStep_ClarifyRoot(idx, (-1f) * increase, points[idx, 0]);
+                    float temp = SecondStep_ClarifyRoot(idx, increase, firstStep_Intervals[idx, 0]);
+                    return temp;
                 }
 
                 if (FuncValLessThanAcc(nextX)) 
@@ -140,8 +138,13 @@ namespace _4MI_Laba1
         public static bool FuncValLessThanAcc(float point) =>
             Math.Abs(function(point)) < accuracy;
 
-        static ConsoleColor[] Alerts = { ConsoleColor.Gray, ConsoleColor.Red, ConsoleColor.DarkGreen, ConsoleColor.DarkGray, ConsoleColor.White };
-        public static ConsoleColor SetColor(ConsoleColor color) => Console.ForegroundColor = color;
+        static ConsoleColor[] Alerts =
+        {
+            ConsoleColor.Gray, ConsoleColor.Red, 
+            ConsoleColor.DarkGreen, ConsoleColor.DarkGray, 
+            ConsoleColor.White
+        };
+        public static void SetColor(ConsoleColor color) => Console.ForegroundColor = color;
 
         public static void Output()
         {
