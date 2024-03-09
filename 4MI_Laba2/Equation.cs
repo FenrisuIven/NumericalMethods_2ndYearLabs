@@ -11,26 +11,25 @@ namespace _4MI_Laba2
     {
         public double[] coefficients;
         public double[] variables;
-        public double constTerm;
+        public double constantTerm;
 
-        public Equation(double[] coef, double[] vars, double cons)
+        public Equation(double[] _coefficients, double[] _variables, double _constantTerm)
         {
-            coefficients = coef;
-            variables = vars;
-            constTerm = cons;
+            coefficients = _coefficients;
+            variables = _variables;
+            constantTerm = _constantTerm;
         }
 
-        public double GetRes(int idxVar)
+        public double Solve(int indexOfCurrVariable)
         {
             double res = 0;
-            int count = 0;
             for (int i = 0; i < coefficients.Length; i++)
             {
-                if (i == idxVar - 1) {
-                    res += constTerm / coefficients[i];
+                if (i == indexOfCurrVariable) {
+                    res += constantTerm / coefficients[i];
                     continue;
                 }
-                res += (coefficients[i] * -1f) * variables[i] / coefficients[idxVar - 1];
+                res += (-1f * coefficients[i]) * variables[i] / coefficients[indexOfCurrVariable];
             }
             return res;
         }
@@ -38,13 +37,14 @@ namespace _4MI_Laba2
         public override string ToString()
         {
             List<string> res = new List<string>();
-            double prev = 0;
             for (int i = 0; i < variables.Length; i++)
             {
+                // :)
                 if (i != 0) res.Add($"{(coefficients[i] < 0 ? "-" : "+")} ");
-                res.Add($"{(coefficients[i] == null ? "" : $"{coefficients[i]}*")}{(variables[i] == 0 ? $"x{i}" : $"{variables[i]}")} ");
+                res.Add($"{(coefficients[i] < 0 ? $"{(-1f * coefficients[i]):0.####} * " : $"{coefficients[i]:0.####} * ")}" +
+                        $"{(variables[i] == null ? $"x{i}" : $"{variables[i]:0.####}")} ");
             }
-            res.Add($"= {constTerm}");
+            res.Add($"= {constantTerm}");
             return string.Join("", res);
         }
     }

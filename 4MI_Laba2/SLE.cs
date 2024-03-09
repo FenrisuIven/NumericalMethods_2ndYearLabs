@@ -9,39 +9,36 @@ namespace _4MI_Laba2
 {
     public class SLE
     {
-        public double[]  vector_X;
-        public double[,] matrix_A;
-        public double[]  vector_B;
+        public double[]  variables;
+        public double[,] coefficients;
+        public double[]  constantTerms;
 
-        public SLE(double[] x, double[,] a, double[] b)
+        public SLE(double[] vars, double[,] coeffs, double[] term)
         {
-            vector_X = x;
-            matrix_A = a;
-            vector_B = b;
+            variables = vars;
+            coefficients = coeffs;
+            constantTerms = term;
         }
 
         public Equation GetRowEq(int idxRow)
         {
-            double[] coeffs = new double[matrix_A.GetLength(1)];
-            for (int i = 0; i < matrix_A.GetLength(1); i++)
-            {
-                coeffs[i] = matrix_A[idxRow, i];
-            }
-            return new Equation(coeffs, vector_X, vector_B[idxRow]);
+            double[] currentRowCoefficients = new double[coefficients.GetLength(1)];
+            for (int i = 0; i < coefficients.GetLength(1); i++)
+                currentRowCoefficients[i] = coefficients[idxRow, i];
+            //contemplating whether or not I should switch to jagged at this point...
+            
+            return new Equation(currentRowCoefficients, variables, constantTerms[idxRow]);
         }
         
         public override string ToString()
         {
             List<string> res = new List<string>();
-            for (int i = 0; i < matrix_A.GetLength(0); i++)
+            for (int i = 0; i < coefficients.GetLength(0); i++)
             {
-                for (int j = 0; j < matrix_A.GetLength(1); j++)
-                {
-                    res.Add($"{matrix_A[i, j]}*{vector_X[j]} ");
-                }
-                res.Add($"= {vector_B[i]}\n");
+                if (i != coefficients.GetLength(0) - 1) res.Add(GetRowEq(i).ToString() + "\n");
+                else res.Add(GetRowEq(i).ToString());
             }
-
+            
             return string.Join("", res);
         }
     }
