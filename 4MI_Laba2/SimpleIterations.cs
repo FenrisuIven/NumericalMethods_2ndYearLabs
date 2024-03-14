@@ -1,45 +1,52 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.NetworkInformation;
+using MathNet.Numerics;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace _4MI_Laba2
 {
-    //I will be adding output of in-between steps of calculation,
-    //matrix transposition and SLE normalisation algorithms
-    //and a lot more...
-    
-    //As well as fixing current issues with- ahem- the amount of loops here. Whoops.
     public class SimpleIterations
     {
-        public double[] initialApproximation;
-        private double[] foundApproximations;
+        private SLE sle;
         
-        public double accuracy;
-        public int amountOfVariables;
+        private Vector<double> initialApproximation;
+        private Vector<double> foundApproximations;
         
-        private double[] prevAbsoluteDifference;
-        private double[] currentAbsoluteDifferences;
+        private double accuracy;
+        private int amountOfVariables;
+        
+        private Vector<double> prevAbsoluteDifference;
+        private Vector<double> currentAbsoluteDifferences;
 
         private int countOfIncreasedAccDifference = 0;
         private bool firstAccDiffComparison = true;
         
         public bool matrixNeedsToBeNormalised = false;
         public bool matrixIsNormalised = false;
-        
-        public SimpleIterations(double[] _approximations, double _accuracy, int _amountOfVariables)
+
+        public SimpleIterations(SLE _sle)
         {
-            initialApproximation = _approximations;
+            sle = _sle;
+        }
+        public SimpleIterations(Vector<double> _approximations, double _accuracy, int _amountOfVariables)
+        {
+            initialApproximation = Vector<double>.Build.Dense(_approximations.Count);
+            _approximations.CopyTo(initialApproximation);
+            
             amountOfVariables = _amountOfVariables;
             accuracy = _accuracy;
 
-            foundApproximations = new double[amountOfVariables];
-            initialApproximation.CopyTo(foundApproximations, 0);
+            foundApproximations = Vector<double>.Build.Dense(_approximations.Count);
+            initialApproximation.CopyTo(foundApproximations);
             
-            prevAbsoluteDifference = new double[amountOfVariables];
-            currentAbsoluteDifferences = new double[amountOfVariables];
+            prevAbsoluteDifference = Vector<double>.Build.Dense(amountOfVariables);
+            currentAbsoluteDifferences = Vector<double>.Build.Dense(amountOfVariables);
         }
         
-        public double[] Start(double[,] coefficients, double[] constantTerms)
+        public Vector<double> Start(Matrix<double> coefficients, Vector<double> constantTerms)
         {
             int i = 0;
             while(true)  
@@ -47,11 +54,8 @@ namespace _4MI_Laba2
                 DisplayIterationNum(i);
                 for (int j = 0; j < amountOfVariables; j++)  
                 {
-                    //this can be shorter, will figure out how to make it so later on
-                    double[] currentRowCoefficients = new double[coefficients.GetLength(0)];
-                    for (int k = 0; k < currentRowCoefficients.Length; k++) currentRowCoefficients[k] = coefficients[j, k];
-                    
-                    Equation currentRowToEquation = new Equation(currentRowCoefficients, foundApproximations, constantTerms[j]);
+                    Equation currentRowToEquation = new Equation(
+                        coefficients.Row(j), foundApproximations, constantTerms[j]);
                     double currentEquationResult = currentRowToEquation.Solve(j);
                     foundApproximations[j] = currentEquationResult;
                 }
@@ -61,26 +65,25 @@ namespace _4MI_Laba2
                     Console.WriteLine("\nFound solution"); 
                     return foundApproximations;
                 }
-                if (countOfIncreasedAccDifference == 3 && !matrixIsNormalised)
+                
+                if (countOfIncreasedAccDifference == 3)
                 {
-                    matrixNeedsToBeNormalised = true;
-                    Console.WriteLine("\nMatrix needs to be normalised");
-                    return new double[amountOfVariables];
+                    if (!matrixIsNormalised)
+                    {
+                        matrixNeedsToBeNormalised = true;
+                        Console.WriteLine("\nMatrix needs to be normalised");
+                        //matrixIsNormalised;
+                    }
+                    else throw new ArgumentException("Something is wrong with the matrix");
                 }
-                //if (countOfIncreasedAccDifference == 3 && matrixIsNormalised)
-                //{ "matrix is wrong blah-blah-blah" }
                 
-                //or rather make it two if-s:
-                //if (countOfIncreasedAccDifference == 3)
-                //{ if (matrixIsNormalised) {...} else {...} }
-                
-                foundApproximations.CopyTo(initialApproximation, 0);
+                foundApproximations.CopyTo(initialApproximation);
                 i++;
             }
         }
 
         private bool CurrentSolutionIsAcceptable()
-        {   //I don't even wanna talk about everything that's going on here tbh
+        {
             CalculateDifferences();
             bool isAcceptable = true;
             for (int i = 0; i < amountOfVariables; i++)
@@ -113,7 +116,6 @@ namespace _4MI_Laba2
                 }
                 for (int i = 0; i < amountOfVariables; i++)
                     prevAbsoluteDifference[i] = currentAbsoluteDifferences[i];
-                //I will cut down on the amount of loops here lmao I promise
             }
             return isAcceptable;
         }
@@ -123,7 +125,7 @@ namespace _4MI_Laba2
             Func<int, double> absoluteDifference = (idx) => 
                 Math.Abs(foundApproximations[idx] - initialApproximation[idx]);
             
-            for (int i = 0; i < currentAbsoluteDifferences.Length; i++)
+            for (int i = 0; i < currentAbsoluteDifferences.Count; i++)
                 currentAbsoluteDifferences[i] = absoluteDifference(i);
         }
         

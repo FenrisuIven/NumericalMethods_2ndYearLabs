@@ -34,6 +34,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="MathNet.Numerics, Version=6.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>packages\MathNet.Numerics.6.0.0-beta1\lib\net48\MathNet.Numerics.dll</HintPath>
+        </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
@@ -45,6 +48,9 @@
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="SimpleIterations.cs" />
         <Compile Include="SLE.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
