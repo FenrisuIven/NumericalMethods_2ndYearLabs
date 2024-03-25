@@ -1,20 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Numerics.LinearAlgebra.Double;    
 
 namespace _4MI_Laba2
 {
     public class Equation
     {
-        public Vector<double> coefficients;
-        public Vector<double> variables;
-        public double constantTerm;
+        private Vector<double> coefficients;
+        private Vector<double> variables;
+        private double constantTerm;
+        public bool varsAreNull = true;
 
         public Equation(double[] _coefficients, double[] _variables, double _constantTerm)
         {
@@ -42,17 +40,31 @@ namespace _4MI_Laba2
             }
             return res;
         }
+
+        public double Evalv()
+        {
+            double res = 0;
+            for (int i = 0; i < coefficients.Count; i++)
+                res += coefficients[i] * variables[i];
+
+            return res;
+        }
         
-        public override string ToString()
+        public string ToString(bool skipConst)
         {
             List<string> res = new List<string>();
             for (int i = 0; i < variables.Count; i++)
             {
                 if (i != 0) res.Add($"{(coefficients[i] < 0 ? "-" : "+")} ");
+                if (i == 0) { 
+                    res.Add($"{(coefficients[i] < 0 ? $"{(coefficients[i]):0.####} * " : $" {coefficients[i]:0.####} * ")}" +
+                                   $"{(varsAreNull ? $"x{i}" : $"{variables[i]:0.####}")} ");
+                    continue;
+                }
                 res.Add($"{(coefficients[i] < 0 ? $"{(-1f * coefficients[i]):0.####} * " : $"{coefficients[i]:0.####} * ")}" +
-                        $"{(variables[i] == null ? $"x{i}" : $"{variables[i]:0.####}")} ");
+                        $"{(varsAreNull ? $"x{i}" : $"{variables[i]:0.####}")} ");
             }
-            res.Add($"= {constantTerm}");
+            if (!skipConst) res.Add($"= {constantTerm}");
             return string.Join("", res);
         }
     }

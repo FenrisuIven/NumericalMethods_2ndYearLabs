@@ -15,7 +15,8 @@ namespace _4MI_Laba2
         public Vector<double> variables;
         public Matrix<double> coefficients;
         public Vector<double> constantTerms;
-
+        public bool varsAreNull = true;
+        
         public SLE(double[] _variables, double[,] _coefficients, double[] term)
         {
             variables = DenseVector.OfArray(_variables);
@@ -24,21 +25,26 @@ namespace _4MI_Laba2
         }
         public SLE(Vector<double> _variables, Matrix<double> _coefficients, Vector<double> _constantTerms)
         {
+            if (_variables.Count != _coefficients.ColumnCount) throw new ArgumentException();
+            else if (_constantTerms.Count != _coefficients.RowCount) throw new ArgumentException();
+            
             variables = _variables.Clone();
             coefficients = _coefficients.Clone();
             constantTerms = _constantTerms.Clone();
         }
 
-        private Equation GetRowEq(int idxRow) => 
+        public Equation GetRowEq(int idxRow) => 
             new Equation(coefficients.Row(idxRow), variables, constantTerms[idxRow]);
         
-        public override string ToString()
+        public string ToString(bool skipConst)
         {
             List<string> res = new List<string>();
             for (int i = 0; i < coefficients.RowCount; i++)
             {
-                if (i != coefficients.RowCount - 1) res.Add(GetRowEq(i).ToString() + "\n");
-                else res.Add(GetRowEq(i).ToString());
+                var temp = GetRowEq(i);
+                temp.varsAreNull = varsAreNull;
+                if (i != coefficients.RowCount - 1) res.Add(temp.ToString(skipConst) + "\n");
+                else res.Add(temp.ToString(skipConst));
             }
             
             return string.Join("", res);
@@ -48,9 +54,10 @@ namespace _4MI_Laba2
 
         public void Normalise()
         {
+            Color.WriteLine(2,"- Виконується нормалізація матриці...");
             var coefficients_Transposed = coefficients.Transpose();
-            coefficients *= coefficients_Transposed;
-            constantTerms *= coefficients_Transposed;
+            coefficients = coefficients_Transposed * coefficients;
+            constantTerms = coefficients_Transposed * constantTerms;
         }
         #endregion
     }
