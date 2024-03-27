@@ -15,24 +15,46 @@ namespace _4MI_Laba3
 {
     internal class Program
     {
+        public static NonlinearSystem system;
+
+        private static void FormSystem()
+        {
+            #region First Equation
+            var firstEq = new Equation();
+            var firstElems = new List<Expression<Func<double, double>>>
+            {
+                x => 4 * x,
+                y => 11 * Math.Pow(y, 2)
+            };
+            List<string> firstOps = new List<string> { "+", "+" };
+            double firstConst = 0; 
+            #endregion
+            firstEq.Initialize(firstElems, firstOps, firstConst);
+            
+            #region Second Equation
+            var secondEq = new Equation();
+            var secondElems = new List<Expression<Func<double, double>>>
+            {
+                x => 11 * x,
+                y => 7 * Math.Pow(y, 3),
+                c => 33
+            };
+            List<string> secondOps = new List<string> { "+", "+" };
+            double secondConst = 0; 
+            #endregion
+            secondEq.Initialize(secondElems, secondOps, secondConst);
+
+            system = new NonlinearSystem(new List<Equation> { firstEq, secondEq });
+        }
+        
         public static void Main(string[] args)
         {
-            var eq = new Equation();
-            var elements = new List<Expression<Func<double, double>>>();
-            Expression<Func<double, double>> expr = x => 4 * x;
-            elements.Add(expr);
-            expr = y => 11 * Math.Pow(y, 2);
-            elements.Add(expr);
+            FormSystem();
+            Console.WriteLine(system.ToString());
 
-            List<string> operations = new List<string>();
-            operations.Add("+");
-
-            double constantTerm = 0; 
-            
-            eq.Initialize(elements, operations, constantTerm);
-            
-            Console.WriteLine(eq.FormEquation.BasicString(true));
-            Console.WriteLine(eq.FormEquation.EvalvedString(3, 3));
+            NewtonsMethod method = new NewtonsMethod();
+            method.Initialize(new double[] { -4, 1 }, system);
+            method.CheckConvergence();
         }
     }
 }

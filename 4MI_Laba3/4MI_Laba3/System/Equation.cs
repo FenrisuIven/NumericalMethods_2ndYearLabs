@@ -75,7 +75,7 @@ namespace _4MI_Laba3
             };
             
             for (int i = 1; i < _eq.GetElementCount(); i++)
-                res.Add($"{_eq.GetElementAt(i).Body} {_eq.GetOperationAt(i - 1)} ");
+                res.Add($" {_eq.GetOperationAt(i - 1)} {_eq.GetElementAt(i).Body}");
 
             if (withConst) res.Add($" = {_eq.ConstTerm}");
             

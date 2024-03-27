@@ -46,10 +46,11 @@
         <Compile Include="Calculator\ArithmeticUnit.cs" />
         <Compile Include="Calculator\Command.cs" />
         <Compile Include="Calculator\ControlUnit.cs" />
-        <Compile Include="Equation.cs" />
-        <Compile Include="NonlinearSystem.cs" />
+        <Compile Include="NewtonsMethod.cs" />
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="System\Equation.cs" />
+        <Compile Include="System\NonlinearSystem.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />
